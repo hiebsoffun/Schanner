@@ -1,13 +1,20 @@
 package de.haidozo.schanner;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
 
-public class MainActivity extends ActionBarActivity {
+
+public class MainActivity extends ActionBarActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+
+    private static final String    TAG                 = "SchafkopfScoreScanner::MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,11 +26,13 @@ public class MainActivity extends ActionBarActivity {
     }
 
     static {
-        System.loadLibrary("hello");
+        if (!OpenCVLoader.initDebug()) {
+            // Handle initialization error
+            Log.e(TAG, "OpenCVLoader.initDebug() failed.");
+        } else {
+            System.loadLibrary("schafkopf_score_scanner");
+        }
     }
-
-    public native String hello();
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -46,4 +55,21 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onCameraViewStarted(int width, int height) {
+
+    }
+
+    @Override
+    public void onCameraViewStopped() {
+
+    }
+
+    @Override
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        return null;
+    }
+
+    private native String hello();
 }

@@ -8,28 +8,37 @@ import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
+import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 
-public class MainActivity extends ActionBarActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class MainActivity extends ActionBarActivity {
 
     private static final String    TAG                 = "SchafkopfScoreScanner::MainActivity";
-
-    private CameraBridgeViewBase   mOpenCvCameraView;
 
     // Native methods
     private native String hello();
 
-    static {
-        if (!OpenCVLoader.initDebug()) {
-            // Handle initialization error
-            Log.e(TAG, "OpenCVLoader.initDebug() failed.");
-        } else {
-            System.loadLibrary("schafkopf_score_scanner");
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                    Log.i(TAG, "OpenCV loaded successfully");
+                    // Load native library after(!) OpenCV initialization
+                    System.loadLibrary("schafkopf_score_scanner");
+                    break;
+                default:
+                    super.onManagerConnected(status);
+                    break;
+            }
         }
-    }
+    };
 
     public MainActivity() {
         Log.i(TAG, "Instantiated new " + this.getClass());
@@ -39,11 +48,32 @@ public class MainActivity extends ActionBarActivity implements CameraBridgeViewB
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    }
 
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mOpenCvCameraView = (CameraBridgeViewBase)findViewById(R.id.main_activity_surface_view);
-        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        mOpenCvCameraView.setCvCameraViewListener(this);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!OpenCVLoader.initDebug()) {
+            Log.e(TAG, "OpenCVLoader.initDebug() failed.");
+        } else {
+            Log.d(TAG, "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
     }
 
     @Override
@@ -66,20 +96,5 @@ public class MainActivity extends ActionBarActivity implements CameraBridgeViewB
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onCameraViewStarted(int width, int height) {
-
-    }
-
-    @Override
-    public void onCameraViewStopped() {
-
-    }
-
-    @Override
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        return null;
     }
 }

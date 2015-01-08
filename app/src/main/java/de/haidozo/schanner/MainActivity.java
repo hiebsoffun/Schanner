@@ -1,44 +1,24 @@
 package de.haidozo.schanner;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceView;
-import android.view.WindowManager;
 
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
-
 
 public class MainActivity extends ActionBarActivity {
 
-    private static final String    TAG                 = "SchafkopfScoreScanner::MainActivity";
+    private static final String     TAG                                 = "Schanner::MainActivity";
+    private static final int        CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+    private Uri                     fileUri;
 
     // Native methods
     private native String hello();
-
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                    Log.i(TAG, "OpenCV loaded successfully");
-                    // Load native library after(!) OpenCV initialization
-                    System.loadLibrary("schafkopf_score_scanner");
-                    break;
-                default:
-                    super.onManagerConnected(status);
-                    break;
-            }
-        }
-    };
 
     public MainActivity() {
         Log.i(TAG, "Instantiated new " + this.getClass());
@@ -48,6 +28,15 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // create Intent to take a picture and return control to the calling application
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        //fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE); // create a file to save the image
+        //intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+
+        // start the image capture Intent
+        startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
     }
 
     @Override
@@ -57,7 +46,8 @@ public class MainActivity extends ActionBarActivity {
             Log.e(TAG, "OpenCVLoader.initDebug() failed.");
         } else {
             Log.d(TAG, "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+            // Load native library after(!) OpenCV initialization
+            System.loadLibrary("schafkopf_score_scanner");
         }
     }
 

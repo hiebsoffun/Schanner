@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Original file: Z:\\Development\\Schanner\\openCVLibrary\\src\\main\\aidl\\org\\opencv\\engine\\OpenCVEngineInterface.aidl
+ * Original file: D:\\MichaelHiebl_transfer\\Schanner\\openCVLibrary\\src\\main\\aidl\\org\\opencv\\engine\\OpenCVEngineInterface.aidl
  */
 package org.opencv.engine;
 /**

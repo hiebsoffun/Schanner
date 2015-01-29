@@ -1,41 +1,40 @@
 package de.haidozo.schanner;
 
 import android.app.Activity;
-import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 public class MainActivity extends Activity {
 
-    private static final String     TAG                                 = "Schanner::MainActivity";
-    private static final int        CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-    private Uri outputFileUri;
+    private static final String     TAG                 = "Schanner::MainActivity";
+    private String                  APP_NAME            = null;
+    private static final int        REQUEST_CODE        = 100;
+    public static String            outputFile;
     @InjectView(R.id.scan_button) Button button;
 
     // Native methods
-    private native String hello();
+    private native String AnalyzePicture(long imgAddr);
 
     public MainActivity() {
         Log.i(TAG, "Instantiated new " + this.getClass());
@@ -46,52 +45,87 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        APP_NAME = getString(R.string.app_name);
         ButterKnife.inject(this);
-
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity.this.openImageIntent();
-            }
-        });
     }
 
-    private void openImageIntent() {
-        // Determine Uri of camera image to save.
-        final File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + "Schanner" + File.separator);
-        root.mkdirs();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-        Date now = new Date();
-        String fileName = formatter.format(now) + ".jpg";
-        final File sdImageMainDirectory = new File(root, fileName);
-        outputFileUri = Uri.fromFile(sdImageMainDirectory);
+    public void selectImage(View view) {
+        // create Intent to take a picture and return control to the calling application
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-        // Camera.
-        final List<Intent> cameraIntents = new ArrayList<Intent>();
-        final Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        final PackageManager packageManager = getPackageManager();
-        final List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
-        for(ResolveInfo res : listCam) {
-            final String packageName = res.activityInfo.packageName;
-            final Intent intent = new Intent(captureIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(packageName);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-            cameraIntents.add(intent);
+        Uri outputFileUri = createOutputImageFileUri(); // create a file to save the image
+        int lastSlashIndex = outputFileUri.toString().lastIndexOf('/');
+        outputFile = outputFileUri.toString().substring(lastSlashIndex+1);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+
+        // start the image capture Intent
+        startActivityForResult(intent, REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                // Image captured and saved to outputFile
+
+                // read the image
+                String sdcard = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES).toString();
+                String filePath = sdcard + File.separator + APP_NAME + File.separator + outputFile;
+                Mat image = Highgui.imread(filePath, Highgui.CV_LOAD_IMAGE_GRAYSCALE);
+
+                Log.d(TAG, image.channels() + "");
+                if(! image.empty()) {
+                    showToast("Image loaded by OpenCV!");
+                    showToast(AnalyzePicture(image.nativeObj));
+                } else {
+                    showToast("Highgui.imread() failed.");
+                }
+            } else if (resultCode == RESULT_CANCELED) {
+                // User cancelled the image capture
+            } else {
+                // Image capture failed, advise user
+                showToast("Image capture failed");
+            }
         }
 
-        // Filesystem.
-        final Intent galleryIntent = new Intent();
-        galleryIntent.setType("image/*");
-        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+     }
 
-        // Chooser of filesystem options.
-        final Intent chooserIntent = Intent.createChooser(galleryIntent, "Take image from...");
+    //check if SD card is mounted. If so create unique file
+    private Uri createOutputImageFileUri() {
+        String state = Environment.getExternalStorageState();
+        File mediaFile = null;
+        if (state.equals(Environment.MEDIA_MOUNTED)) {
+            File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_PICTURES), APP_NAME);
 
-        // Add the camera options.
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[]{}));
+            // Create the storage directory if it does not exist
+            if (! mediaStorageDir.exists()){
+                if (! mediaStorageDir.mkdirs()){
+                    Log.d(TAG, "failed to create directory");
+                    return null;
+                }
+            }
 
-        startActivityForResult(chooserIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+            // create media file name
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String file = mediaStorageDir.getPath() + File.separator + "IMG_" + timeStamp + ".png";
+            mediaFile = new File(file);
+        } else {
+            Log.d(TAG, "SD Card not mounted");
+            showToast("SD Card not mounted");
+            return null;
+        }
+
+        return Uri.fromFile(mediaFile);
+    }
+
+    private void showToast(String message) {
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_LONG;
+
+        Toast toast = Toast.makeText(context, message, duration);
+        toast.show();
     }
 
     @Override

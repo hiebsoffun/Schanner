@@ -7,13 +7,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef de_haidozo_schanner_MainActivity_REQUEST_CODE
+#define de_haidozo_schanner_MainActivity_REQUEST_CODE 100L
+#undef de_haidozo_schanner_MainActivity_MEDIA_TYPE_IMAGE
+#define de_haidozo_schanner_MainActivity_MEDIA_TYPE_IMAGE 1L
 /*
  * Class:     de_haidozo_schanner_MainActivity
- * Method:    hello
- * Signature: ()Ljava/lang/String;
+ * Method:    AnalyzePicture
+ * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_de_haidozo_schanner_MainActivity_hello
-  (JNIEnv *, jobject);
+JNIEXPORT jstring JNICALL Java_de_haidozo_schanner_MainActivity_AnalyzePicture
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

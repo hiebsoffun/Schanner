@@ -23,7 +23,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.Bind;
+
 
 public class MainActivity extends Activity {
 
@@ -31,7 +32,7 @@ public class MainActivity extends Activity {
     private String                  APP_NAME            = null;
     private static final int        REQUEST_CODE        = 100;
     public static String            outputFile;
-    @InjectView(R.id.scan_button) Button button;
+    @Bind(R.id.scan_button) Button button;
 
     // Native methods
     private native String AnalyzePicture(long imgAddr);
@@ -46,7 +47,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         APP_NAME = getString(R.string.app_name);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
     }
 
     public void selectImage(View view) {

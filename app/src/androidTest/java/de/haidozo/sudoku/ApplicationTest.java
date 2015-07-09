@@ -1,4 +1,4 @@
-package de.haidozo.schanner;
+package de.haidozo.sudoku;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

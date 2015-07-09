@@ -9,7 +9,7 @@ OPENCV_INSTALL_MODULES:=on
 OPENCV_LIB_TYPE:=SHARED
 include ${OPENCVROOT}/sdk/native/jni/OpenCV.mk
 
-LOCAL_MODULE := schafkopf_score_scanner
+LOCAL_MODULE := sudoku
 LOCAL_SRC_FILES := main.cpp
 LOCAL_LDLIBS += -llog
 

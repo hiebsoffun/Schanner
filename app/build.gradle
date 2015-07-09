@@ -22,14 +22,14 @@ android {
     }
 
     defaultConfig {
-        applicationId "de.haidozo.schanner"
+        applicationId "de.haidozo.sudoku"
         minSdkVersion 15
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
 
         ndk {
-            moduleName "schafkopf_score_scanner"
+            moduleName "sudoku"
         }
     }
 

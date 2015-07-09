@@ -1,4 +1,4 @@
-package de.haidozo.schanner;
+package de.haidozo.sudoku;
 
 import android.app.Activity;
 import android.content.Context;
@@ -24,11 +24,12 @@ import java.util.Date;
 
 import butterknife.ButterKnife;
 import butterknife.Bind;
+import de.haidozo.sudoku.R;
 
 
 public class MainActivity extends Activity {
 
-    private static final String     TAG                 = "Schanner::MainActivity";
+    private static final String     TAG                 = "Sudoku::MainActivity";
     private String                  APP_NAME            = null;
     private static final int        REQUEST_CODE        = 100;
     public static String            outputFile;
@@ -145,7 +146,7 @@ public class MainActivity extends Activity {
         } else {
             Log.d(TAG, "OpenCV library found inside package. Using it!");
             // Load native library after(!) OpenCV initialization
-            System.loadLibrary("schafkopf_score_scanner");
+            System.loadLibrary("sudoku");
         }
     }
 

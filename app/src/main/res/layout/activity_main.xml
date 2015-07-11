@@ -9,9 +9,22 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Scan Punkteblatt"
+        android:text="Cam"
         android:id="@+id/scan_button"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:onClick="selectImage"/>
+        android:layout_gravity="left"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/gallery_button"
+        android:layout_marginStart="50dp"
+        android:nestedScrollingEnabled="false" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pic"
+        android:id="@+id/gallery_button"
+        android:layout_marginStart="63dp"
+        android:layout_gravity="left"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:nestedScrollingEnabled="false" />
+
 </RelativeLayout>

@@ -1,13 +1,13 @@
 package de.haidozo.sudoku;
 
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
-
-import org.opencv.core.Mat;
-import org.opencv.highgui.Highgui;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -18,9 +18,14 @@ import java.util.Date;
  */
 public class ImageProvider {
 
-    private String imageFromCamera;
+    private MainActivity                mainActivity;
+    public static String                outputFile;
 
-    public String getImageFromCamera() {
+    public ImageProvider(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
+    }
+
+    public void getImageFromCamera() {
         // create Intent to take a picture and return control to the calling application
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -30,35 +35,50 @@ public class ImageProvider {
         intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
 
         // start the image capture Intent
-        startActivityForResult(intent, REQUEST_CODE);
+        mainActivity.startActivityForResult(intent, MainActivity.REQUEST_IMAGE_FROM_CAM);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                // Image captured and saved to outputFile
+    public void getImageFromGallery() {
 
-                // read the image
-                String sdcard = Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_PICTURES).toString();
-                String filePath = sdcard + File.separator + APP_NAME + File.separator + outputFile;
-                Mat image = Highgui.imread(filePath, Highgui.CV_LOAD_IMAGE_GRAYSCALE);
+        // in onCreate or any event where your want the user to
+        // select a file
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
 
-                Log.d(TAG, image.channels() + "");
-                if(! image.empty()) {
-                    showToast("Image loaded by OpenCV!");
-                    showToast(AnalyzePicture(image.nativeObj));
-                } else {
-                    showToast("Highgui.imread() failed.");
-                }
-            } else if (resultCode == RESULT_CANCELED) {
-                // User cancelled the image capture
-            } else {
-                // Image capture failed, advise user
-                showToast("Image capture failed");
-            }
+        mainActivity.startActivityForResult(Intent.createChooser(intent, "Select Sudoku Image"),
+                                            MainActivity.REQUEST_IMAGE_FROM_GALLERY);
+    }
+
+    public String getPathOfCameraImage() {
+        String sdcard = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES).toString();
+        String imagePath = sdcard + File.separator + MainActivity.APP_NAME + File.separator + outputFile;
+        return imagePath;
+    }
+
+    public String getPathOfGalleryImageFromUri(Context applicationContext, Uri uri) {
+        String filePath = "";
+        String wholeID = DocumentsContract.getDocumentId(uri);
+
+        // Split at colon, use second item in the array
+        String id = wholeID.split(":")[1];
+
+        String[] column = { MediaStore.Images.Media.DATA };
+
+        // where id is equal to
+        String sel = MediaStore.Images.Media._ID + "=?";
+
+        Cursor cursor = applicationContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                column, sel, new String[]{ id }, null);
+
+        int columnIndex = cursor.getColumnIndex(column[0]);
+
+        if (cursor.moveToFirst()) {
+            filePath = cursor.getString(columnIndex);
         }
+        cursor.close();
+        Log.d(MainActivity.TAG,filePath);
+        return filePath;
     }
 
     //check if SD card is mounted. If so create unique file
@@ -67,12 +87,12 @@ public class ImageProvider {
         File mediaFile = null;
         if (state.equals(Environment.MEDIA_MOUNTED)) {
             File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_PICTURES), APP_NAME);
+                    Environment.DIRECTORY_PICTURES), MainActivity.APP_NAME);
 
             // Create the storage directory if it does not exist
             if (! mediaStorageDir.exists()){
                 if (! mediaStorageDir.mkdirs()){
-                    Log.d(TAG, "failed to create directory");
+                    Log.d(MainActivity.TAG, "failed to create directory");
                     return null;
                 }
             }
@@ -82,8 +102,7 @@ public class ImageProvider {
             String file = mediaStorageDir.getPath() + File.separator + "IMG_" + timeStamp + ".png";
             mediaFile = new File(file);
         } else {
-            Log.d(TAG, "SD Card not mounted");
-            showToast("SD Card not mounted");
+            Log.d(MainActivity.TAG, "SD Card not mounted");
             return null;
         }
 

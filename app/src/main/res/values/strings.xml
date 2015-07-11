@@ -4,4 +4,7 @@
     <string name="app_name">Sudoku</string>
     <string name="action_settings">No clue what to do with that</string>
 
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

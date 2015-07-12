@@ -5,6 +5,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
 
+    <fragment android:name="de.haidozo.sudoku.game.BoardFragment"
+        android:id="@+id/board"
+        android:layout_weight="2"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_board" />
 
     <Button
         android:layout_width="wrap_content"
